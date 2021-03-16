@@ -53,9 +53,10 @@ pub trait Keys {
     type PublicKey;
 }
 
+use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
 pub trait Commitment {
     /// Commitment type given the blockchain and the crypto engine
-    type Commitment;
+    type Commitment: StrictDecode + StrictEncode;
 }
 
 pub trait Signatures {

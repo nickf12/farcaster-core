@@ -1,17 +1,30 @@
 //! Protocol messages exchanged between swap daemons
 
-use crate::crypto::Proof;
+use crate::crypto::{Commitment, Proof};
 use crate::role::{Accordant, Arbitrating};
 
 /// Trait for defining inter-daemon communication messages.
 pub trait ProtocolMessage {}
 
+use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
+
+pub trait ProtMsg {}
+
+impl<Ar, Ac> ProtMsg for CommitAliceSessionParams<Ar, Ac>
+where
+    Ar: Commitment,
+    Ac: Commitment,
+{
+}
+
 /// `commit_alice_session_params` forces Alice to commit to the result of her cryptographic setup
 /// before receiving Bob's setup. This is done to remove adaptive behavior.
+#[derive(Clone, Debug, StrictDecode, StrictEncode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 pub struct CommitAliceSessionParams<Ar, Ac>
 where
-    Ar: Arbitrating,
-    Ac: Accordant,
+    Ar: Commitment,
+    Ac: Commitment,
 {
     /// Commitment to `Ab` curve point
     pub buy: Ar::Commitment,
@@ -27,6 +40,12 @@ where
     pub spend: Ac::Commitment,
     /// Commitment to `K_s^a` curve point
     pub view: Ac::Commitment,
+}
+
+impl<Ar: Commitment, Ac: Commitment> std::fmt::Display for CommitAliceSessionParams<Ar, Ac> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
 }
 
 impl<Ar, Ac> ProtocolMessage for CommitAliceSessionParams<Ar, Ac>
