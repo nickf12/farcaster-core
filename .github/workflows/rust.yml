@@ -1,0 +1,90 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  test:
+    name: Unit tests
+    strategy:
+      matrix:
+        rust: [
+            stable,
+            nightly
+        ]
+        include:
+        - rust: stable
+          features: default,fee_range
+        - rust: nightly
+          features: default,fee_range,nightly
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Rust ${{ matrix.rust }}
+      uses: actions-rs/toolchain@v1.0.7
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+        profile: minimal
+
+    - uses: Swatinem/rust-cache@v2.2.0
+
+    - run: cargo test --verbose --features ${{ matrix.features }}
+
+  rpc-test:
+    name: Integration tests
+    strategy:
+      matrix:
+        rust: [
+            stable,
+            nightly
+        ]
+        include:
+        - rust: stable
+          features: default,rpc
+        - rust: nightly
+          features: default,rpc,nightly
+
+    runs-on: ubuntu-latest
+    container:
+      image: rust:latest
+      volumes:
+        - bitcoind-data:/data
+
+    services:
+      bitcoind:
+        image: ghcr.io/farcaster-project/containers/bitcoin-core:23.0
+        env:
+          NETWORK: regtest
+          RPC_PORT: 18443
+          FALLBACKFEE: "0.00001"
+        volumes:
+          - bitcoind-data:/data
+        ports:
+          - 18443:18443
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Rust ${{ matrix.rust }}
+      uses: actions-rs/toolchain@v1.0.7
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+        profile: minimal
+
+    - name: Run regtest Bitcoin transactions
+      run: cargo test --verbose --test transactions --features ${{ matrix.features }} -- --test-threads=1
+      env:
+        RPC_HOST: bitcoind
+        RPC_PORT: 18443
