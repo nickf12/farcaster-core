@@ -35,7 +35,7 @@ amplify = "3"
 base58-monero = "1"
 bitvec = { version = "1.0" }
 clap = { version = "3", features = ["derive"] }
-fixed-hash = { version = "0.7", default-features = false }
+fixed-hash = { version = "0.8", default-features = false }
 hex = "0.4"
 inet2_addr = { version = "0.8", default-features = false, features = ["tor", "strict_encoding", "serde"] }
 serde = { version = "1", features = ["derive"] }
@@ -59,7 +59,7 @@ sha3 = "0.10"
 
 # blockchain specific
 bitcoin = { version = "0.28", features = ["use-serde"] }
-monero = { version = "0.17", features = ["serde"] }
+monero = { version = "0.18.2", features = ["serde"] }
 
 [dev-dependencies]
 bitcoincore-rpc = "0.15"
